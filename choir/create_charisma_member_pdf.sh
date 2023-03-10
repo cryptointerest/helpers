@@ -4,10 +4,13 @@
 shopt -s nullglob
 
 function delete_old_pdf() {
-    file=$1
-    if [ -f "$file" ]; then
-        rm $file
-    fi
+    file_name=$1
+    file_and_control_file=$(echo ${file_name%.*}*.pdf)
+    for file in $file_and_control_file; do
+        if [ -f "$file" ]; then
+            rm $file
+        fi
+    done
 }
 
 function create_dir_if_nonexistent(){
@@ -40,7 +43,9 @@ function convert_image_to_down_scaled_pdf(){
 function concatenate_pdfs() {
     pdf_dir=$1
     out_name=${2%.*}
-    pdftk $pdf_dir/*.pdf cat output $out_name.pdf
+    pdftk $pdf_dir/*.pdf cat output ${out_name}_control.pdf
+    randomised_list_of_pdfs=$(shuf -e $(echo $pdf_dir/*.pdf))
+    pdftk $randomised_list_of_pdfs cat output $out_name.pdf
 }
 
 function set_pdf_password(){
@@ -74,7 +79,7 @@ function main(){
     create_downsized_images_in_parallel $thumbnail_dir
     concatenate_pdfs $thumbnail_dir $output_file_name
     set_pdf_password $output_file_name $pdf_password
-    mv $output_file_name $calling_dir/
+    mv *.pdf $calling_dir/
     delete_thumbnails $thumbnail_dir
     cd $calling_dir
 }
