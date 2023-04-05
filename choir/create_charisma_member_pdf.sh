@@ -21,14 +21,16 @@ function create_dir_if_nonexistent(){
 }
 
 function create_downsized_images_in_parallel(){
-    num_processes=3
-    out_dir=$1
-    for jpg_image in *.JPG; do
-        ((i=i%num_processes)); ((i++==0)) && wait
-	echo "Downscaling image $jpg_image and converting to pdf ..."
-	convert_image_to_down_scaled_pdf $jpg_image $out_dir &
-    done
-    wait
+    (renice 10 $BASHPID
+        num_processes=3
+        out_dir=$1
+        for jpg_image in *.JPG; do
+            ((i=i%num_processes)); ((i++==0)) && wait
+            echo "Downscaling image $jpg_image and converting to pdf ..."
+            convert_image_to_down_scaled_pdf $jpg_image $out_dir &
+        done
+        wait
+    )
 }
 
 function convert_image_to_down_scaled_pdf(){
